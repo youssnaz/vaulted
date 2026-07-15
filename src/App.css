@@ -593,23 +593,25 @@ p {
 
   display: grid;
 
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
-  gap: 16px;
+  gap: 10px;
 
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 
 }
 
 .summary-card {
 
+  min-width: 0;
+
   background: #17191f;
 
   border: 1px solid #2b2f37;
 
-  border-radius: 18px;
+  border-radius: 13px;
 
-  padding: 18px;
+  padding: 11px;
 
   transition:
     transform .18s ease,
@@ -640,9 +642,15 @@ p {
 
   color: #8f949d;
 
-  font-size: 11px;
+  font-size: 8px;
 
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 
 }
 
@@ -650,7 +658,7 @@ p {
 
   display: block;
 
-  font-size: 14px;
+  font-size: 10px;
 
   font-weight: 700;
 

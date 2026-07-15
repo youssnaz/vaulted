@@ -263,18 +263,19 @@ if (isEditing) {
 
     setDescription("");
 
-    setAsset("Silver");
-    setType("Coin");
+setAsset("Silver");
+setType("Coin");
 
-    setPurity("99.9%");
-    setCustomPurity("");
+setPurity("99.9%");
+setCustomPurity("");
 
-    setQuantity("");
-    setWeight("");
-    setPrice("");
-    setCurrentValue("");
+setQuantity("");
+setWeight("");
+setPrice("");
+setCurrentValue("");
 
-    setPage("portfolio");
+// Stay on the Add Asset page.
+// Press Done in the header when finished adding assets.
 
   }
 
