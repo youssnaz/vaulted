@@ -1,0 +1,12 @@
+html {
+  background: #08090b;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+input {
+  -webkit-appearance: none;
+}
