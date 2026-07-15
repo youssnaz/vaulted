@@ -57,15 +57,7 @@ export default function Home({
 
       <div className="home-widgets">
 
-        <div className="portfolio-widget">
 
-          <small>Portfolio</small>
-
-          <strong>
-            {formatPortfolio(portfolio)}
-          </strong>
-
-        </div>
 
         <div className="spot-row">
 

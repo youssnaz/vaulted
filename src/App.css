@@ -44,7 +44,7 @@ body {
 
   text-align: center;
 
-  margin-bottom: 70px;
+  margin-bottom: 32px;
 
   width: 100%;
 
@@ -77,9 +77,13 @@ h2 {
 }
 
 .home-actions {
+
   display: grid;
+
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+
+  gap: 12px;
+
 }
 
 .action-card {
@@ -89,22 +93,27 @@ h2 {
   width: 100%;
 
   display: flex;
+
   flex-direction: column;
+
   justify-content: center;
+
   align-items: center;
 
-  gap: 18px;
+  gap: 14px;
 
   background: #17191f;
 
   border: 1px solid #2b2f37;
-  border-radius: 28px;
+
+  border-radius: 24px;
 
   color: white;
 
   cursor: pointer;
 
   transition: all .22s ease;
+
 }
 
 .action-card:hover {
@@ -125,14 +134,17 @@ h2 {
 
 .home-icon {
 
-  width: 66px;
-  height: 66px;
+  width: 58px;
+
+  height: 58px;
 
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 
-  border-radius: 18px;
+  border-radius: 16px;
 
   background: #23262e;
 
@@ -142,13 +154,13 @@ h2 {
 
 .home-icon svg {
 
-  width: 34px;
-  height: 34px;
+  width: 30px;
+
+  height: 30px;
 
   stroke-width: 1.8;
 
 }
-
 .button-copy {
 
   display: flex;
@@ -159,7 +171,7 @@ h2 {
 
 .button-copy strong {
 
-  font-size: 25px;
+  font-size: 22px;
 
   font-weight: 650;
 
@@ -436,6 +448,7 @@ p {
   transform: scale(.985);
 
 }
+
 /* ---------- SAVE BUTTON ---------- */
 
 .save-button {
@@ -1993,57 +2006,59 @@ p {
   font-weight: 500;
 
 }
-.home-widgets {
-
-  position: absolute;
-
-  top: 28px;
-
-  right: 28px;
+.portfolio-widget {
 
   display: flex;
 
-  flex-direction: column;
+  align-items: center;
+
+  justify-content: center;
 
   gap: 10px;
 
-}
+  padding: 0;
 
-.portfolio-widget {
+  background: none;
 
-  min-width: 175px;
-
-  padding: 12px 16px;
-
-  border-radius: 18px;
-
-  background: rgba(255,255,255,0.05);
-
-  backdrop-filter: blur(14px);
-
-  border: 1px solid rgba(255,255,255,0.08);
+  border: none;
 
 }
-
 .portfolio-widget small {
 
-  color: #9ca3af;
+  display: block;
 
-  font-size: 11px;
+  color: #8f949d;
+
+  font-size: 10px;
+
+  letter-spacing: .08em;
+
+  text-transform: uppercase;
 
 }
 
 .portfolio-widget strong {
 
+  color: white;
+
+  font-size: 14px !important;
+
+  font-weight: 700;
+
+}
+.portfolio-widget strong {
+
   display: block;
 
-  margin-top: 4px;
+  margin-top: 6px;
 
   color: white;
 
-  font-size: 20px;
+  font-size: 34px;
 
-  font-weight: 700;
+  font-weight: 750;
+
+  letter-spacing: -.03em;
 
 }
 
@@ -2051,23 +2066,31 @@ p {
 
   display: flex;
 
-  gap: 10px;
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 22px;
+
+  margin-top: -2px;
+
+margin-bottom: 20px;
 
 }
 
 .spot-widget {
 
-  flex: 1;
+  display: flex;
 
-  padding: 10px;
+  align-items: center;
 
-  border-radius: 16px;
+  gap: 6px;
 
-  background: rgba(255,255,255,0.05);
+  background: none;
 
-  backdrop-filter: blur(14px);
+  border: none;
 
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 0;
 
 }
 
@@ -2077,32 +2100,26 @@ p {
 
   align-items: center;
 
-  gap: 6px;
+  gap: 5px;
 
 }
-
 .spot-title small {
 
-  color: #9ca3af;
-
-  font-size: 10px;
+  display: none;
 
 }
 
 .spot-widget strong {
 
-  display: block;
-
-  margin-top: 5px;
+  margin: 0;
 
   color: white;
 
-  font-size: 16px;
+  font-size: 13px;
 
-  font-weight: 700;
+  font-weight: 600;
 
 }
-
 .spot-dot {
 
   width: 8px;
