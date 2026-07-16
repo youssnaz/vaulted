@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
+import { useMarket } from "../context/MarketContext";
 import Header from "../components/Header";
 
 export default function Market({ setPage }) {
 
-  const [silverSpot, setSilverSpot] = useState(
-    () => localStorage.getItem("silverSpot") || ""
-  );
+  const {
+  gold,
+  silver,
+  lastUpdated,
+  loading,
+  refreshMarketData,
+} = useMarket();
 
-  const [goldSpot, setGoldSpot] = useState(
-    () => localStorage.getItem("goldSpot") || ""
-  );
+ const silverSpot = Number(silver) || 0;
+
+  const goldSpot = Number(gold) || 0;
 
   const [usdZar, setUsdZar] = useState(
     () => localStorage.getItem("usdZar") || ""
@@ -128,14 +133,9 @@ export default function Market({ setPage }) {
             Silver Spot (USD/oz)
           </label>
 
-          <input
-            type="number"
-            placeholder="0.00"
-            value={silverSpot}
-            onChange={(event) =>
-              setSilverSpot(event.target.value)
-            }
-          />
+          <div className="market-live-value">
+  ${silverSpot.toFixed(2)}
+</div>
 
         </div>
 
@@ -144,15 +144,9 @@ export default function Market({ setPage }) {
           <label>
             Gold Spot (USD/oz)
           </label>
-
-          <input
-            type="number"
-            placeholder="0.00"
-            value={goldSpot}
-            onChange={(event) =>
-              setGoldSpot(event.target.value)
-            }
-          />
+<div className="market-live-value">
+  ${goldSpot.toFixed(2)}
+</div>
 
         </div>
 
@@ -294,6 +288,43 @@ export default function Market({ setPage }) {
             </div>
 
           </div>
+
+        </div>
+
+      </div>
+
+      <div className="market-footer">
+
+        <div className="market-update-card">
+
+          <small>Last Updated</small>
+
+          <strong>
+            {lastUpdated
+              ? new Date(lastUpdated).toLocaleString()
+              : "Never"}
+          </strong>
+
+        </div>
+
+        <div className="market-buttons">
+
+          <button
+            className="market-refresh-button"
+            onClick={refreshMarketData}
+            disabled={loading}
+          >
+            {loading
+              ? "Refreshing..."
+              : "🔄 Refresh Metals"}
+          </button>
+
+          <button
+            className="market-disabled-button"
+            disabled
+          >
+            💱 Currency Soon
+          </button>
 
         </div>
 

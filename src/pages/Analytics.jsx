@@ -7,26 +7,56 @@ import {
   Package,
 } from "lucide-react";
 
+import { useMarket } from "../context/MarketContext";
+import { calculateCurrentValue } from "../calculations/portfolioCalculator";
+
 export default function Analytics({
   setPage,
   assets,
 }) {
 
-  const totalPurchase = assets.reduce(
-    (sum, asset) =>
-      sum +
-      (Number(asset.price) || 0) *
-      (Number(asset.quantity) || 0),
-    0
-  );
+  const { gold, silver } = useMarket();
 
-  const totalCurrent = assets.reduce(
-    (sum, asset) =>
-      sum +
-      (Number(asset.currentValue) || 0) *
-      (Number(asset.quantity) || 0),
-    0
-  );
+  const usdZar =
+    Number(localStorage.getItem("usdZar")) || 0;
+
+  const marketData = {
+    gold: Number(gold) || 0,
+    silver: Number(silver) || 0,
+    usdZar,
+  };
+
+  const assetsWithLiveValues = assets.map((asset) => {
+
+    const purchase =
+      (Number(asset.price) || 0) *
+      (Number(asset.quantity) || 0);
+
+    const {
+      totalCurrent,
+    } = calculateCurrentValue(
+      asset,
+      marketData
+    );
+
+    return {
+      purchase,
+      current: totalCurrent,
+    };
+
+  });
+
+  const totalPurchase =
+    assetsWithLiveValues.reduce(
+      (sum, asset) => sum + asset.purchase,
+      0
+    );
+
+  const totalCurrent =
+    assetsWithLiveValues.reduce(
+      (sum, asset) => sum + asset.current,
+      0
+    );
 
   const profit =
     totalCurrent - totalPurchase;
@@ -55,7 +85,13 @@ export default function Analytics({
         <h2>Portfolio Value</h2>
 
         <strong>
-          R {totalCurrent.toLocaleString()}
+          R {totalCurrent.toLocaleString(
+            undefined,
+            {
+              minimumFractionDigits:2,
+              maximumFractionDigits:2,
+            }
+          )}
         </strong>
 
         <small
@@ -64,8 +100,13 @@ export default function Analytics({
           }}
         >
           {profit >= 0 ? "+" : ""}
-          R {profit.toLocaleString()} •{" "}
-          {profitPercent.toFixed(2)}%
+          R {profit.toLocaleString(
+            undefined,
+            {
+              minimumFractionDigits:2,
+              maximumFractionDigits:2,
+            }
+          )} • {profitPercent.toFixed(2)}%
         </small>
 
       </div>
@@ -103,36 +144,36 @@ export default function Analytics({
         </div>
 
         <div
-  className="analytics-tile"
-  onClick={() =>
-    setPage("assetAllocation")
-  }
->
+          className="analytics-tile"
+          onClick={() =>
+            setPage("assetAllocation")
+          }
+        >
 
-  <ChartPie
-    size={34}
-    className="analytics-icon"
-  />
+          <ChartPie
+            size={34}
+            className="analytics-icon"
+          />
 
-  <h3>Asset Allocation</h3>
+          <h3>Asset Allocation</h3>
 
-</div>
+        </div>
 
-       <div
-  className="analytics-tile"
-  onClick={() =>
-    setPage("collectionBreakdown")
-  }
->
+        <div
+          className="analytics-tile"
+          onClick={() =>
+            setPage("collectionBreakdown")
+          }
+        >
 
-  <Package
-    size={34}
-    className="analytics-icon"
-  />
+          <Package
+            size={34}
+            className="analytics-icon"
+          />
 
-  <h3>Collection Breakdown</h3>
+          <h3>Collection Breakdown</h3>
 
-</div>
+        </div>
 
       </div>
 

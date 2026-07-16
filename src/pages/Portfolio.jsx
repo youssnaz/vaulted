@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "../components/Header";
 import PortfolioSummary from "../components/PortfolioSummary";
@@ -8,13 +8,15 @@ import DeleteDialog from "../components/DeleteDialog";
 import FilterDialog from "../components/FilterDialog";
 import SortDialog from "../components/SortDialog";
 
+import { useMarket } from "../context/MarketContext";
+import { calculateCurrentValue } from "../calculations/portfolioCalculator";
+
 export default function Portfolio({
   setPage,
   assets,
   setAssets,
   setSelectedAsset,
 }) {
-
   const [assetToDelete, setAssetToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
@@ -24,21 +26,47 @@ export default function Portfolio({
   const [activeFilters, setActiveFilters] = useState([]);
   const [activeSort, setActiveSort] = useState("");
 
-   const portfolioPurchase = assets.reduce(
-    (total, asset) =>
-      total +
-      (Number(asset.price) || 0) *
-      (Number(asset.quantity) || 0),
-    0
-  );
+  const { gold, silver } = useMarket();
 
-  const portfolioCurrent = assets.reduce(
-    (total, asset) =>
-      total +
-      (Number(asset.currentValue) || 0) *
-      (Number(asset.quantity) || 0),
-    0
-  );
+  const usdZar =
+    Number(localStorage.getItem("usdZar")) || 0;
+
+  const marketData = {
+    gold: Number(gold) || 0,
+    silver: Number(silver) || 0,
+    usdZar,
+  };
+
+  const assetsWithLiveValues = assets.map((asset) => {
+    const quantity = Number(asset.quantity) || 0;
+    const purchase = Number(asset.price) || 0;
+
+    const {
+      current,
+      totalCurrent,
+    } = calculateCurrentValue(asset, marketData);
+
+    return {
+      ...asset,
+      liveCurrentValue: current,
+      liveTotalCurrent: totalCurrent,
+      liveTotalPurchase: purchase * quantity,
+    };
+  });
+
+  const portfolioPurchase =
+    assetsWithLiveValues.reduce(
+      (total, asset) =>
+        total + asset.liveTotalPurchase,
+      0
+    );
+
+  const portfolioCurrent =
+    assetsWithLiveValues.reduce(
+      (total, asset) =>
+        total + asset.liveTotalCurrent,
+      0
+    );
 
   const portfolioProfit =
     portfolioCurrent - portfolioPurchase;
@@ -48,132 +76,150 @@ export default function Portfolio({
       ? (portfolioProfit / portfolioPurchase) * 100
       : 0;
 
-  // Exchange rate from Market page
-  const usdRate =
-    Number(localStorage.getItem("usdZar")) || 0;
-
   const portfolioUSD =
-    usdRate > 0
-      ? portfolioCurrent / usdRate
+    usdZar > 0
+      ? portfolioCurrent / usdZar
       : 0;
-      useEffect(() => {
 
-  localStorage.setItem(
-    "portfolioCurrent",
-    portfolioCurrent
-  );
+  useEffect(() => {
+    localStorage.setItem(
+      "portfolioCurrent",
+      portfolioCurrent
+    );
+  }, [portfolioCurrent]);
 
-}, [portfolioCurrent]);
+  const filteredAssets =
+    assetsWithLiveValues.filter((asset) => {
+      const text = search.toLowerCase();
 
-  let filteredAssets = assets.filter((asset) => {
+      const matchesSearch =
+        asset.id.toLowerCase().includes(text) ||
+        asset.description.toLowerCase().includes(text) ||
+        asset.asset.toLowerCase().includes(text) ||
+        asset.type.toLowerCase().includes(text);
 
-    const text = search.toLowerCase();
+      let matchesFilter = true;
 
-    const matchesSearch =
-      asset.id.toLowerCase().includes(text) ||
-      asset.description.toLowerCase().includes(text) ||
-      asset.asset.toLowerCase().includes(text) ||
-      asset.type.toLowerCase().includes(text);
+      if (activeFilters.length > 0) {
+        matchesFilter = activeFilters.some((filter) => {
+          if (filter === "Silver") {
+            return asset.asset === "Silver";
+          }
 
-    let matchesFilter = true;
+          if (filter === "Gold") {
+            return asset.asset === "Gold";
+          }
 
-    if (activeFilters.length > 0) {
+          if (filter === "Misc") {
+            return (
+              asset.asset === "Copper" ||
+              asset.asset === "Diamond" ||
+              asset.asset === "Lab Diamond" ||
+              asset.asset === "Other"
+            );
+          }
 
-      matchesFilter = activeFilters.some((filter) => {
+          return false;
+        });
+      }
 
-        if (filter === "Silver")
-          return asset.asset === "Silver";
-
-        if (filter === "Gold")
-          return asset.asset === "Gold";
-
-        if (filter === "Misc") {
-
-          return (
-            asset.asset === "Copper" ||
-            asset.asset === "Diamond" ||
-            asset.asset === "Lab Diamond" ||
-            asset.asset === "Other"
-          );
-
-        }
-
-        return false;
-
-      });
-
-    }
-
-    return matchesSearch && matchesFilter;
-
-  });
+      return matchesSearch && matchesFilter;
+    });
 
   filteredAssets.sort((a, b) => {
-
     switch (activeSort) {
-
       case "Date Added ↓":
-        return Number(b.id.slice(1)) - Number(a.id.slice(1));
+        return (
+          Number(b.id.slice(1)) -
+          Number(a.id.slice(1))
+        );
 
       case "Date Added ↑":
-        return Number(a.id.slice(1)) - Number(b.id.slice(1));
+        return (
+          Number(a.id.slice(1)) -
+          Number(b.id.slice(1))
+        );
 
       case "Current ↓":
-        return Number(b.currentValue || 0) - Number(a.currentValue || 0);
+        return (
+          Number(b.liveCurrentValue || 0) -
+          Number(a.liveCurrentValue || 0)
+        );
 
       case "Current ↑":
-        return Number(a.currentValue || 0) - Number(b.currentValue || 0);
+        return (
+          Number(a.liveCurrentValue || 0) -
+          Number(b.liveCurrentValue || 0)
+        );
 
       case "Purchase ↓":
-        return Number(b.price || 0) - Number(a.price || 0);
+        return (
+          Number(b.price || 0) -
+          Number(a.price || 0)
+        );
 
       case "Purchase ↑":
-        return Number(a.price || 0) - Number(b.price || 0);
+        return (
+          Number(a.price || 0) -
+          Number(b.price || 0)
+        );
 
       case "Weight ↓":
-        return Number(b.weight || 0) - Number(a.weight || 0);
+        return (
+          Number(b.weight || 0) -
+          Number(a.weight || 0)
+        );
 
       case "Weight ↑":
-        return Number(a.weight || 0) - Number(b.weight || 0);
+        return (
+          Number(a.weight || 0) -
+          Number(b.weight || 0)
+        );
 
-       case "Profit ↓":
-  return (
-    (Number(b.currentValue || 0) -
-      Number(b.price || 0)) -
-    (Number(a.currentValue || 0) -
-      Number(a.price || 0))
-  );
+      case "Profit ↓":
+        return (
+          Number(b.liveCurrentValue || 0) -
+          Number(b.price || 0) -
+          (
+            Number(a.liveCurrentValue || 0) -
+            Number(a.price || 0)
+          )
+        );
 
-case "Profit ↑":
-  return (
-    (Number(a.currentValue || 0) -
-      Number(a.price || 0)) -
-    (Number(b.currentValue || 0) -
-      Number(b.price || 0))
-  );
+      case "Profit ↑":
+        return (
+          Number(a.liveCurrentValue || 0) -
+          Number(a.price || 0) -
+          (
+            Number(b.liveCurrentValue || 0) -
+            Number(b.price || 0)
+          )
+        );
 
-case "Quantity ↓":
-  return Number(b.quantity || 0) -
-    Number(a.quantity || 0);
+      case "Quantity ↓":
+        return (
+          Number(b.quantity || 0) -
+          Number(a.quantity || 0)
+        );
 
-case "Quantity ↑":
-  return Number(a.quantity || 0) -
-    Number(b.quantity || 0);
+      case "Quantity ↑":
+        return (
+          Number(a.quantity || 0) -
+          Number(b.quantity || 0)
+        );
 
-case "Asset A-Z":
-  return a.asset.localeCompare(b.asset);
+      case "Asset A-Z":
+        return a.asset.localeCompare(b.asset);
 
-case "Asset Z-A":
-  return b.asset.localeCompare(a.asset); 
+      case "Asset Z-A":
+        return b.asset.localeCompare(a.asset);
+
       default:
         return 0;
-
     }
-
   });
 
   function confirmDelete() {
-
     setAssets(
       assets.filter(
         (asset) => asset.id !== assetToDelete.id
@@ -181,85 +227,73 @@ case "Asset Z-A":
     );
 
     setAssetToDelete(null);
-
   }
 
-function handleRowClick(asset) {
-
-  setSelectedAsset(asset);
-
-  setPage("details");
-
-}
-
-  function clearFilters() {
-
-    setActiveFilters([]);
-
+  function handleRowClick(asset) {
+    setSelectedAsset(asset);
+    setPage("details");
   }
 
   function clearSort() {
-
     setActiveSort("");
-
+  }
+    function clearFilters() {
+    setActiveFilters([]);
   }
 
   return (
+    <div className="portfolio-screen">
 
-  <div className="portfolio-screen">
+      <Header
+        title="Portfolio"
+        onBack={() => setPage("home")}
+      />
 
-    <Header
-      title="Portfolio"
-      onBack={() => setPage("home")}
-    />
+      <PortfolioSummary
+        assets={assetsWithLiveValues}
+        portfolioCurrent={portfolioCurrent}
+        portfolioProfit={portfolioProfit}
+        portfolioProfitPercent={portfolioProfitPercent}
+        portfolioUSD={portfolioUSD}
+      />
 
-   <PortfolioSummary
-  assets={assets}
-  portfolioCurrent={portfolioCurrent}
-  portfolioProfit={portfolioProfit}
-  portfolioProfitPercent={portfolioProfitPercent}
-  portfolioUSD={portfolioUSD}
-/>
+      <PortfolioToolbar
+        search={search}
+        setSearch={setSearch}
+        onFilterClick={() => setShowFilter(true)}
+        onSortClick={() => setShowSort(true)}
+        activeFilters={activeFilters}
+        setActiveFilters={setActiveFilters}
+        activeSort={activeSort}
+        clearSort={clearSort}
+      />
 
-    <PortfolioToolbar
-      search={search}
-      setSearch={setSearch}
-      onFilterClick={() => setShowFilter(true)}
-      onSortClick={() => setShowSort(true)}
-      activeFilters={activeFilters}
-      setActiveFilters={setActiveFilters}
-      activeSort={activeSort}
-      clearSort={clearSort}
-    />
+      <PortfolioTable
+        assets={filteredAssets}
+        handleRowClick={handleRowClick}
+        setAssetToDelete={setAssetToDelete}
+      />
 
-    <PortfolioTable
-      assets={filteredAssets}
-      handleRowClick={handleRowClick}
-      setAssetToDelete={setAssetToDelete}
-    />
+      <DeleteDialog
+        assetToDelete={assetToDelete}
+        setAssetToDelete={setAssetToDelete}
+        confirmDelete={confirmDelete}
+      />
 
-    <DeleteDialog
-      assetToDelete={assetToDelete}
-      setAssetToDelete={setAssetToDelete}
-      confirmDelete={confirmDelete}
-    />
+      <FilterDialog
+        isOpen={showFilter}
+        onClose={() => setShowFilter(false)}
+        activeFilters={activeFilters}
+        setActiveFilters={setActiveFilters}
+      />
 
-    <FilterDialog
-      isOpen={showFilter}
-      onClose={() => setShowFilter(false)}
-      activeFilters={activeFilters}
-      setActiveFilters={setActiveFilters}
-    />
+      <SortDialog
+        isOpen={showSort}
+        onClose={() => setShowSort(false)}
+        activeSort={activeSort}
+        setActiveSort={setActiveSort}
+      />
 
-    <SortDialog
-      isOpen={showSort}
-      onClose={() => setShowSort(false)}
-      activeSort={activeSort}
-      setActiveSort={setActiveSort}
-    />
-
-  </div>
-
-); 
-
+    </div>
+  );
 }

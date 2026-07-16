@@ -8,6 +8,9 @@ import {
   Tooltip,
 } from "recharts";
 
+import { useMarket } from "../context/MarketContext";
+import { calculateCurrentValue } from "../calculations/portfolioCalculator";
+
 const COLORS = {
   Silver: "#D8DEE9",
   Gold: "#D4AF37",
@@ -22,19 +25,34 @@ export default function AssetAllocation({
   assets,
 }) {
 
+  const { gold, silver } = useMarket();
+
+  const usdZar =
+    Number(localStorage.getItem("usdZar")) || 0;
+
+  const marketData = {
+    gold: Number(gold) || 0,
+    silver: Number(silver) || 0,
+    usdZar,
+  };
+
   function totalValue(assetName) {
 
     return assets
       .filter(
         asset => asset.asset === assetName
       )
-      .reduce(
-        (sum, asset) =>
-          sum +
-          (Number(asset.currentValue) || 0) *
-          (Number(asset.quantity) || 0),
-        0
-      );
+      .reduce((sum, asset) => {
+
+        const { totalCurrent } =
+          calculateCurrentValue(
+            asset,
+            marketData
+          );
+
+        return sum + totalCurrent;
+
+      }, 0);
 
   }
 
@@ -78,45 +96,45 @@ export default function AssetAllocation({
       0
     );
 
-function percentage(value) {
+  function percentage(value) {
 
-  if (totalPortfolio === 0)
-    return 0;
+    if (totalPortfolio === 0)
+      return 0;
+
+    return (
+      (value / totalPortfolio) *
+      100
+    );
+
+  }
+
+  function formatPortfolioValue(value) {
+
+    if (value >= 1000000) {
+
+      const millions =
+        value / 1000000;
+
+      return `R${millions.toFixed(
+        millions >= 10 ? 0 : 1
+      )}M`;
+
+    }
+
+    if (value >= 1000) {
+
+      const thousands =
+        value / 1000;
+
+      return `R${thousands.toFixed(1)}K`;
+
+    }
+
+    return `R${value.toLocaleString()}`;
+
+  }
 
   return (
-    (value / totalPortfolio) *
-    100
-  );
-
-}
-
-function formatPortfolioValue(value) {
-
-  if (value >= 1000000) {
-
-    const millions =
-      value / 1000000;
-
-    return `R${millions.toFixed(
-      millions >= 10 ? 0 : 1
-    )}M`;
-
-  }
-
-  if (value >= 1000) {
-
-    const thousands =
-      value / 1000;
-
-    return `R${thousands.toFixed(1)}K`;
-
-  }
-
-  return `R${value.toLocaleString()}`;
-
-}
-
-return (
 
     <div className="analytics-screen">
 
@@ -128,11 +146,12 @@ return (
       />
 
       <div
-  className="analytics-card"
-  style={{
-    position: "relative",
-  }}
->
+        className="analytics-card"
+        style={{
+          position: "relative",
+        }}
+      >
+
         <div
           style={{
             width: "100%",
@@ -143,7 +162,8 @@ return (
           <ResponsiveContainer>
 
             <PieChart>
-                          <Pie
+
+              <Pie
                 data={data}
                 dataKey="value"
                 nameKey="name"
@@ -180,43 +200,43 @@ return (
         </div>
 
         <div
-  style={{
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    textAlign: "center",
-    pointerEvents: "none",
-    width: "140px",
-  }}
->
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            pointerEvents: "none",
+            width: "140px",
+          }}
+        >
 
-     <h3
-  style={{
-    color: "#9ca3af",
-    margin: 0,
-    fontSize: "11px",
-    fontWeight: 500,
-    letterSpacing: "0.8px",
-    textTransform: "uppercase",
-  }}
->
-  Portfolio
-</h3>
+          <h3
+            style={{
+              color: "#9ca3af",
+              margin: 0,
+              fontSize: "11px",
+              fontWeight: 500,
+              letterSpacing: "0.8px",
+              textTransform: "uppercase",
+            }}
+          >
+            Portfolio
+          </h3>
 
-      <h2
-  style={{
-    color: "white",
-    margin: "5px 0 0",
-    fontSize: "16px",
-    fontWeight: 700,
-    lineHeight: "1.2",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  }}
->
-{formatPortfolioValue(totalPortfolio)}
+          <h2
+            style={{
+              color: "white",
+              margin: "5px 0 0",
+              fontSize: "16px",
+              fontWeight: 700,
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {formatPortfolioValue(totalPortfolio)}
           </h2>
 
         </div>
@@ -224,8 +244,9 @@ return (
       </div>
 
       {[...data]
-  .sort((a, b) => b.value - a.value)
-  .map((item) => (
+        .sort((a, b) => b.value - a.value)
+        .map((item) => (
+
           <div
             className="allocation-row"
             key={item.name}
@@ -238,14 +259,11 @@ return (
                 <span
                   className="allocation-dot"
                   style={{
-                    background:
-                      COLORS[item.name],
+                    background: COLORS[item.name],
                   }}
                 />
 
-                <span>
-                  {item.name}
-                </span>
+                <span>{item.name}</span>
 
               </div>
 
@@ -261,8 +279,7 @@ return (
                 className="allocation-progress"
                 style={{
                   width: `${percentage(item.value)}%`,
-                  background:
-                    COLORS[item.name],
+                  background: COLORS[item.name],
                 }}
               />
 
@@ -270,7 +287,13 @@ return (
 
             <div className="allocation-value">
 
-              R {item.value.toLocaleString()}
+              R {item.value.toLocaleString(
+                undefined,
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )}
 
             </div>
 

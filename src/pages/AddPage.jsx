@@ -161,46 +161,7 @@ useEffect(() => {
     ? `${customPurity}%`
     : purity;
 
-// Current value (automatic for Silver & Gold)
-
 let calculatedCurrentValue = currentValue;
-
-if (
-  asset === "Silver" ||
-  asset === "Gold"
-) {
-
-  const ounceInGrams = 31.1034768;
-
-  const spot =
-    Number(
-      localStorage.getItem(
-        asset === "Silver"
-          ? "silverSpot"
-          : "goldSpot"
-      )
-    ) || 0;
-
-  const usdZar =
-    Number(
-      localStorage.getItem("usdZar")
-    ) || 0;
-
-  const purityMultiplier =
-    parseFloat(finalPurity) / 100 || 0;
-
-  const weightGrams =
-    Number(weight) || 0;
-
-  calculatedCurrentValue =
-    (
-      (spot / ounceInGrams) *
-      weightGrams *
-      purityMultiplier *
-      usdZar
-    ).toFixed(2);
-
-}
 
 if (isEditing) {
 

@@ -1,21 +1,41 @@
 import Header from "../components/Header";
 
+import { useMarket } from "../context/MarketContext";
+import { calculateCurrentValue } from "../calculations/portfolioCalculator";
+
 export default function ValueByAsset({
   setPage,
   assets,
 }) {
 
+  const { gold, silver } = useMarket();
+
+  const usdZar =
+    Number(localStorage.getItem("usdZar")) || 0;
+
+  const marketData = {
+    gold: Number(gold) || 0,
+    silver: Number(silver) || 0,
+    usdZar,
+  };
+
   function totalValue(assetName) {
 
     return assets
-      .filter(item => item.asset === assetName)
-      .reduce(
-        (sum, item) =>
-          sum +
-          (Number(item.currentValue) || 0) *
-          (Number(item.quantity) || 0),
-        0
-      );
+      .filter(
+        (item) => item.asset === assetName
+      )
+      .reduce((sum, item) => {
+
+        const { totalCurrent } =
+          calculateCurrentValue(
+            item,
+            marketData
+          );
+
+        return sum + totalCurrent;
+
+      }, 0);
 
   }
 

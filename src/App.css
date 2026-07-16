@@ -2533,3 +2533,110 @@ body::-webkit-scrollbar {
   font-size: 10px;
 
 }
+.market-footer {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 14px;
+
+  width: 100%;
+
+  max-width: 700px;
+
+  margin: 0 auto;
+
+}
+
+.market-update-card {
+
+  background: rgba(28,31,38,.72);
+
+  backdrop-filter: blur(12px);
+
+  border: 1px solid rgba(255,255,255,.06);
+
+  border-radius: 18px;
+
+  padding: 18px;
+
+  text-align: center;
+
+}
+
+.market-update-card small {
+
+  color: #8f949d;
+
+  display: block;
+
+  margin-bottom: 6px;
+
+}
+
+.market-update-card strong {
+
+  font-size: 15px;
+
+}
+
+.market-buttons {
+
+  display: flex;
+
+  gap: 12px;
+
+}
+
+.market-refresh-button {
+
+  flex: 1;
+
+  height: 48px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: #3d63d9;
+
+  color: white;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .2s;
+
+}
+
+.market-refresh-button:hover {
+
+  background: #4d74ec;
+
+}
+
+.market-disabled-button {
+
+  flex: 1;
+
+  height: 48px;
+
+  border-radius: 14px;
+
+  border: 1px solid #313846;
+
+  background: #232933;
+
+  color: #8f949d;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: not-allowed;
+
+}

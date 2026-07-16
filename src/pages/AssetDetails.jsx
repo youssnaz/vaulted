@@ -1,16 +1,19 @@
 import Header from "../components/Header";
+import { useMarket } from "../context/MarketContext";
+import { calculateCurrentValue } from "../calculations/portfolioCalculator";
 
 export default function AssetDetails({
   setPage,
   selectedAsset,
 }) {
+  const { gold, silver } = useMarket();
+
+  const usdZar =
+    Number(localStorage.getItem("usdZar")) || 0;
 
   if (!selectedAsset) {
-
     return (
-
       <div className="page-screen">
-
         <Header
           title="Asset Details"
           onBack={() => setPage("portfolio")}
@@ -19,12 +22,15 @@ export default function AssetDetails({
         <div className="asset-details-empty">
           <p>No asset selected.</p>
         </div>
-
       </div>
-
     );
-
   }
+
+  const marketData = {
+    gold: Number(gold) || 0,
+    silver: Number(silver) || 0,
+    usdZar,
+  };
 
   const quantity =
     Number(selectedAsset.quantity) || 0;
@@ -35,14 +41,16 @@ export default function AssetDetails({
   const purchasePrice =
     Number(selectedAsset.price) || 0;
 
-  const currentValue =
-    Number(selectedAsset.currentValue) || 0;
+  const {
+    current: currentPrice,
+    totalCurrent,
+  } = calculateCurrentValue(
+    selectedAsset,
+    marketData
+  );
 
   const totalPurchase =
     purchasePrice * quantity;
-
-  const totalCurrent =
-    currentValue * quantity;
 
   const profit =
     totalCurrent - totalPurchase;
@@ -74,13 +82,20 @@ export default function AssetDetails({
       ? "#ff5f5f"
       : "#f5f5f7";
 
- function handleEdit() {
+  function handleEdit() {
+    setPage("add");
+  }
 
-  setPage("add");
-
-}
-
-  return (
+  function formatMoney(value) {
+    return `R ${Number(value || 0).toLocaleString(
+      undefined,
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    )}`;
+  }
+    return (
 
     <div className="asset-details-screen">
 
@@ -117,9 +132,7 @@ export default function AssetDetails({
 
             <span>Type</span>
 
-            <strong>
-              {selectedAsset.type}
-            </strong>
+            <strong>{selectedAsset.type}</strong>
 
           </div>
 
@@ -127,9 +140,7 @@ export default function AssetDetails({
 
             <span>Quantity</span>
 
-            <strong>
-              {quantity}
-            </strong>
+            <strong>{quantity}</strong>
 
           </div>
 
@@ -139,31 +150,11 @@ export default function AssetDetails({
 
               <span>Purity</span>
 
-              <strong>
-                {selectedAsset.purity}
-              </strong>
+              <strong>{selectedAsset.purity}</strong>
 
             </div>
 
           )}
-
-        </div>
-
-        <div className="asset-details-section">
-
-          <div className="asset-detail-row">
-
-            <span>Weight</span>
-
-            <strong>
-
-              {weight.toLocaleString()}
-
-              {isDiamond ? " ct" : " g"}
-
-            </strong>
-
-          </div>
 
           {isMetal && (
 
@@ -178,11 +169,10 @@ export default function AssetDetails({
                 {pureWeight.toLocaleString(
                   undefined,
                   {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 4,
+                    minimumFractionDigits:2,
+                    maximumFractionDigits:4,
                   }
-                )}{" "}
-                g
+                )} g
 
               </strong>
 
@@ -190,60 +180,98 @@ export default function AssetDetails({
 
           )}
 
-        </div>
-                <div className="asset-details-section asset-money-section">
+          <div className="asset-detail-row">
+
+            <span>Weight</span>
+
+            <strong>
+
+              {weight}
+
+              {isDiamond ? " ct" : " g"}
+
+            </strong>
+
+          </div>
+
+          <div className="asset-detail-row">
+
+            <span>Purchase Price (1)</span>
+
+            <strong>
+
+              {formatMoney(purchasePrice)}
+
+            </strong>
+
+          </div>
+
+          <div className="asset-detail-row">
+
+            <span>Current Price (1)</span>
+
+            <strong>
+
+              {formatMoney(currentPrice)}
+
+            </strong>
+
+          </div>
 
           <div className="asset-detail-row">
 
             <span>Total Purchase</span>
 
             <strong>
-              R {totalPurchase.toLocaleString()}
+
+              {formatMoney(totalPurchase)}
+
             </strong>
 
           </div>
+                  <div className="asset-detail-row">
 
-          <div className="asset-detail-row">
+          <span>Total Current</span>
 
-            <span>Total Current</span>
+          <strong>
 
-            <strong>
-              R {totalCurrent.toLocaleString()}
+            {formatMoney(totalCurrent)}
+
+          </strong>
+
+        </div>
+
+        <div className="asset-detail-row">
+
+          <span>Profit / Loss</span>
+
+          <div className="asset-profit-value">
+
+            <strong
+              style={{
+                color: profitColor,
+              }}
+            >
+              {profit > 0 ? "+" : ""}
+              {formatMoney(profit)}
             </strong>
 
-          </div>
-
-          <div className="asset-detail-row">
-
-            <span>Profit / Loss</span>
-
-            <div className="asset-profit-value">
-
-              <strong
-                style={{
-                  color: profitColor,
-                }}
-              >
-                {profit > 0 ? "+" : ""}
-                R {profit.toLocaleString()}
-              </strong>
-
-              <small
-                style={{
-                  color: profitColor,
-                }}
-              >
-                {profit > 0 ? "+" : ""}
-                {profitPercent.toFixed(2)}%
-              </small>
-
-            </div>
+            <small
+              style={{
+                color: profitColor,
+              }}
+            >
+              {profit > 0 ? "+" : ""}
+              {profitPercent.toFixed(2)}%
+            </small>
 
           </div>
 
         </div>
 
       </div>
+
+    </div>
 
       <button
         className="save-button"
